@@ -169,6 +169,9 @@ public class AggregatorUtil
   // DDSketch aggregator
   public static final byte DDSKETCH_CACHE_TYPE_ID = 0x50;
 
+  // String Min aggregator
+  public static final byte STRING_MIN_CACHE_TYPE_ID = 0x51;
+
   // Bitmap64 exact cardinality count aggregator
   public static final byte BITMAP64_EXACT_COUNT_BUILD_CACHE_TYPE_ID = 0x60;
   public static final byte BITMAP64_EXACT_COUNT_MERGE_CACHE_TYPE_ID = 0x61;

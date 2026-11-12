@@ -65,6 +65,14 @@ public class NilVectorAggregator implements VectorAggregator
     return LONG_NIL_VECTOR_AGGREGATOR;
   }
 
+  /**
+   * @return A vectorized aggregator that returns null.
+   */
+  public static NilVectorAggregator createNilVectorAggregator()
+  {
+    return new NilVectorAggregator(null);
+  }
+
   @Nullable
   private final Object returnValue;
 

@@ -68,6 +68,7 @@ import org.apache.druid.query.aggregation.SerializablePairLongDoubleComplexMetri
 import org.apache.druid.query.aggregation.SerializablePairLongFloatComplexMetricSerde;
 import org.apache.druid.query.aggregation.SerializablePairLongLongComplexMetricSerde;
 import org.apache.druid.query.aggregation.SerializablePairLongStringComplexMetricSerde;
+import org.apache.druid.query.aggregation.StringMinAggregatorFactory;
 import org.apache.druid.query.aggregation.any.DoubleAnyAggregatorFactory;
 import org.apache.druid.query.aggregation.any.FloatAnyAggregatorFactory;
 import org.apache.druid.query.aggregation.any.LongAnyAggregatorFactory;
@@ -5340,6 +5341,87 @@ public class CalciteQueryTest extends BaseCalciteQueryTest
         ),
         ImmutableList.of(
             new Object[]{1.0f, 6.0f}
+        )
+    );
+  }
+
+  @Test
+  public void testSimpleStringMinAggregation()
+  {
+    testQuery(
+        "SELECT MIN(dim1) FROM druid.foo",
+        ImmutableList.of(
+            Druids.newTimeseriesQueryBuilder()
+                  .dataSource(CalciteTests.DATASOURCE1)
+                  .intervals(querySegmentSpec(Filtration.eternity()))
+                  .granularity(Granularities.ALL)
+                  .aggregators(aggregators(
+                      new StringMinAggregatorFactory("a0", "dim1")
+                  ))
+                  .context(QUERY_CONTEXT_DEFAULT)
+                  .build()
+        ),
+        ImmutableList.of(
+            new Object[]{""}
+        )
+    );
+  }
+
+  @Test
+  public void testStringMinAggregationWithFilter()
+  {
+    testQuery(
+        "SELECT MIN(dim1) FROM druid.foo WHERE dim1 = 'abc' OR dim1 = 'def'",
+        ImmutableList.of(
+            Druids.newTimeseriesQueryBuilder()
+                  .dataSource(CalciteTests.DATASOURCE1)
+                  .intervals(querySegmentSpec(Filtration.eternity()))
+                  .granularity(Granularities.ALL)
+                  .filters(
+                      or(
+                          equality("dim1", "abc", ColumnType.STRING),
+                          equality("dim1", "def", ColumnType.STRING)
+                      )
+                  )
+                  .aggregators(aggregators(
+                      new StringMinAggregatorFactory("a0", "dim1")
+                  ))
+                  .context(QUERY_CONTEXT_DEFAULT)
+                  .build()
+        ),
+        ImmutableList.of(
+            new Object[]{"abc"}
+        )
+    );
+  }
+
+  @Test
+  public void testStringMinAggregationWithExpression()
+  {
+    testQuery(
+        "SELECT MIN(CONCAT(dim1, 'x')) FROM druid.foo WHERE dim1 = 'abc' OR dim1 = 'def'",
+        ImmutableList.of(
+            Druids.newTimeseriesQueryBuilder()
+                  .dataSource(CalciteTests.DATASOURCE1)
+                  .intervals(querySegmentSpec(Filtration.eternity()))
+                  .granularity(Granularities.ALL)
+                  .virtualColumns(
+                      expressionVirtualColumn("v0", "concat(\"dim1\",'x')", ColumnType.STRING)
+                  )
+                  .filters(
+                      or(
+                          equality("dim1", "abc", ColumnType.STRING),
+                          equality("dim1", "def", ColumnType.STRING)
+                      )
+                  )
+                  .aggregators(aggregators(
+                      new StringMinAggregatorFactory("a0", "v0")
+                  ))
+                  .context(QUERY_CONTEXT_DEFAULT)
+                  .build()
+        ),
+        ImmutableList.of(
+            new Object[]{"abcx"}
         )
     );
   }

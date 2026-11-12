@@ -2,7 +2,7 @@
 !set outputformat mysql
 
 # Numeric aggregators on STRING columns and string literals.
-# A STRING column is implicitly cast to a number for SUM, AVG and COUNT; MIN and MAX reject it.
+# A STRING column is implicitly cast to a number for SUM, AVG and COUNT; MAX rejects it, while MIN supports strings.
 # A string literal that cannot be parsed as a number is rejected by numeric aggregators such as SUM, AVG and BIT_AND.
 
 # Case 1: SUM(dim1), STRING column.
@@ -18,8 +18,14 @@ SELECT SUM(dim1) FROM foo;
 
 # Case 2: MIN(dim1), STRING column.
 SELECT MIN(dim1) FROM foo;
-Aggregation [MIN] does not support type [STRING], column [v0]
-!error
++--------+
+| EXPR$0 |
++--------+
+|        |
++--------+
+(1 row)
+
+!ok
 
 # Case 3: MAX(dim1), STRING column.
 SELECT MAX(dim1) FROM foo;
@@ -72,8 +78,14 @@ SELECT SUM('1.5') FROM foo;
 
 # Case 8: MIN('1.5'), numeric string literal.
 SELECT MIN('1.5') FROM foo;
-Aggregation [MIN] does not support type [STRING], column [v0]
-!error
++--------+
+| EXPR$0 |
++--------+
+| 1.5    |
++--------+
+(1 row)
+
+!ok
 
 # Case 9: MAX('1.5'), numeric string literal.
 SELECT MAX('1.5') FROM foo;
@@ -120,8 +132,14 @@ Function [SUM] argument [1] must be numeric, got string literal ['abc']
 
 # Case 14: MIN('abc'), non-numeric string literal.
 SELECT MIN('abc') FROM foo;
-Aggregation [MIN] does not support type [STRING], column [v0]
-!error
++--------+
+| EXPR$0 |
++--------+
+| abc    |
++--------+
+(1 row)
+
+!ok
 
 # Case 15: MAX('abc'), non-numeric string literal.
 SELECT MAX('abc') FROM foo;

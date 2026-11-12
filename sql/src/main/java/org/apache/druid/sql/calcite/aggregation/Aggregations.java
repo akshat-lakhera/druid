@@ -68,11 +68,16 @@ public class Aggregations
       final InputAccessor inputAccessor
   )
   {
+    final boolean isStringAgg = call.getAggregation().isName("MIN", false)
+                                && Calcites.getColumnTypeForRelDataType(call.getType()).is(ValueType.STRING);
+
     final List<DruidExpression> args = call
         .getArgList()
         .stream()
         .map(i -> inputAccessor.getField(i))
-        .map(rexNode -> toDruidExpressionWithStringColumnCast(plannerContext, inputAccessor.getInputRowSignature(), rexNode))
+        .map(rexNode -> isStringAgg
+                        ? Expressions.toDruidExpression(plannerContext, inputAccessor.getInputRowSignature(), rexNode)
+                        : toDruidExpressionWithStringColumnCast(plannerContext, inputAccessor.getInputRowSignature(), rexNode))
         .collect(Collectors.toList());
 
     if (args.stream().noneMatch(Objects::isNull)) {
